@@ -4,25 +4,25 @@
 session_start();
 require_once '../includes/db.php';
 
-// 1. Proteger a página: verificar se o admin está autenticado
+// 1. Auth Check
 if (!isset($_SESSION['admin_id'])) {
     header("Location: login.php");
     exit;
 }
 
-// 2. Consultas para obter as estatísticas
+// 2. Fetch Stats
 try {
-    // Total de Clientes
+    // Total Clients
     $total_clientes = $pdo->query("SELECT COUNT(*) FROM cliente")->fetchColumn();
-
-    // Total de Encomendas
+    // Total Orders
     $total_encomendas = $pdo->query("SELECT COUNT(*) FROM encomenda")->fetchColumn();
-
-    // Valor Total Faturado
+    // Total Leads
+    $total_leads = $pdo->query("SELECT COUNT(*) FROM lead")->fetchColumn();
+    // Total Revenue
     $total_faturado = $pdo->query("SELECT SUM(valor_total) FROM encomenda")->fetchColumn();
-    $total_faturado = $total_faturado ?? 0; // Se for null, define como 0
+    $total_faturado = $total_faturado ?? 0;
 
-    // Encomendas por Estado (Query corrigida)
+    // Chart Data: Orders by Status
     $sql_estados = "
         SELECT 
             est.nome_estado, 
@@ -39,64 +39,124 @@ try {
         ORDER BY est.ordem;
     ";
     $stmt_estados = $pdo->query($sql_estados);
-    $encomendas_por_estado = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
+    $stats_estados = $stmt_estados->fetchAll(PDO::FETCH_ASSOC);
+
+    // Chart Data Preparation
+    $labels_chart = [];
+    $data_chart = [];
+    foreach($stats_estados as $st) {
+        $labels_chart[] = $st['nome_estado'];
+        $data_chart[] = $st['total'];
+    }
 
 } catch (PDOException $e) {
-    die("Erro ao carregar as estatísticas do dashboard: " . $e->getMessage());
+    die("Erro DB: " . $e->getMessage());
 }
-?>
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - CRM Admin</title>
-    <link rel="stylesheet" href="../public/css/admin_panel.css">
-</head>
-<body>
-    <div class="admin-panel-container">
-        <aside class="sidebar">
-            <h3>CRM Admin</h3>
-            <nav>
-                <a href="dashboard.php" class="active">Dashboard</a>
-                <a href="gestao_clientes.php">Gestão de Clientes</a>
-                <a href="gestao_encomendas.php">Gestão de Encomendas</a>
-                <a href="logout.php">Sair</a>
-            </nav>
-        </aside>
-        <main class="content">
-            <header>
-                <h2>Dashboard</h2>
-                <p>Bem-vindo, <?php echo htmlspecialchars($_SESSION['admin_nome']); ?>!</p>
-            </header>
-            
-            <section class="stats-cards">
-                <div class="card">
-                    <h4>Total de Clientes</h4>
-                    <p><?php echo $total_clientes; ?></p>
-                </div>
-                <div class="card">
-                    <h4>Total de Encomendas</h4>
-                    <p><?php echo $total_encomendas; ?></p>
-                </div>
-                <div class="card">
-                    <h4>Valor Total Faturado</h4>
-                    <p>€<?php echo number_format($total_faturado, 2, ',', '.'); ?></p>
-                </div>
-            </section>
 
-            <section class="encomendas-por-estado">
-                <h3>Encomendas por Estado</h3>
-                <ul>
-                    <?php foreach ($encomendas_por_estado as $estado): ?>
-                        <li>
-                            <span class="estado-nome"><?php echo htmlspecialchars($estado['nome_estado']); ?></span>
-                            <span class="estado-total"><?php echo $estado['total']; ?></span>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            </section>
-        </main>
+include '../includes/header.php';
+?>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card-counter primary position-relative">
+                <i class="bi bi-people-fill"></i>
+                <span class="count-numbers"><?php echo $total_clientes; ?></span>
+                <span class="count-name">Clientes</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-counter danger position-relative">
+                <i class="bi bi-cart-fill"></i>
+                <span class="count-numbers"><?php echo $total_encomendas; ?></span>
+                <span class="count-name">Encomendas</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-counter success position-relative">
+                <i class="bi bi-currency-euro"></i>
+                <span class="count-numbers"><?php echo number_format($total_faturado, 0, ',', '.'); ?></span>
+                <span class="count-name">Faturado</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card-counter info position-relative">
+                <i class="bi bi-funnel-fill"></i>
+                <span class="count-numbers"><?php echo $total_leads; ?></span>
+                <span class="count-name">Leads Ativas</span>
+            </div>
+        </div>
     </div>
-</body>
-</html>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Estado das Encomendas</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ordersChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Ações Rápidas</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="gestao_clientes.php" class="list-group-item list-group-item-action">
+                        <i class="bi bi-person-plus"></i> Novo Cliente
+                    </a>
+                    <a href="gestao_leads.php" class="list-group-item list-group-item-action">
+                        <i class="bi bi-funnel"></i> Gerir Leads
+                    </a>
+                    <a href="gestao_encomendas.php" class="list-group-item list-group-item-action">
+                        <i class="bi bi-box-seam"></i> Ver Encomendas
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ctx = document.getElementById('ordersChart').getContext('2d');
+    const ordersChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: <?php echo json_encode($labels_chart); ?>,
+            datasets: [{
+                label: 'Número de Encomendas',
+                data: <?php echo json_encode($data_chart); ?>,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<?php include '../includes/footer.php'; ?>

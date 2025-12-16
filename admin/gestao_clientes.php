@@ -1,58 +1,48 @@
 <?php
 // admin/gestao_clientes.php
-
 session_start();
 require_once '../includes/db.php';
 
-// Proteger a página (temporariamente comentado para verificação do frontend)
-/*
 if (!isset($_SESSION['admin_id'])) {
     header("Location: login.php");
     exit;
 }
-*/
 
-// Lógica para ir buscar todos os clientes
 try {
-    $stmt = $pdo->query("SELECT cliente_id, nome, email, data_registo FROM cliente ORDER BY data_registo DESC");
+    // Note: Column name changed from 'data_registo' to 'data_criacao' based on new schema.sql
+    // If working with old DB, this might break, but we are assuming schema.sql import.
+    // Let's use * to be safe or check the schema.
+    // In schema.sql I wrote `data_criacao`. In original file it was `data_registo`.
+    // I will use `data_criacao` as per my new schema.
+    $stmt = $pdo->query("SELECT * FROM cliente ORDER BY data_criacao DESC");
     $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     die("Erro ao carregar os clientes: " . $e->getMessage());
 }
+
+include '../includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Clientes - CRM Admin</title>
-    <link rel="stylesheet" href="../public/css/admin_panel.css">
-    <link rel="stylesheet" href="../public/css/tabela.css">
-</head>
-<body>
-    <div class="admin-panel-container">
-        <aside class="sidebar">
-            <h3>CRM Admin</h3>
-            <nav>
-                <a href="dashboard.php">Dashboard</a>
-                <a href="gestao_clientes.php" class="active">Gestão de Clientes</a>
-                <a href="gestao_encomendas.php">Gestão de Encomendas</a>
-                <a href="logout.php">Sair</a>
-            </nav>
-        </aside>
-        <main class="content">
-            <header>
-                <h2>Gestão de Clientes</h2>
-            </header>
-            
-            <section class="tabela-container">
-                <table>
-                    <thead>
+
+<div class="container-fluid">
+    <h3>Gestão de Clientes</h3>
+
+    <div class="card mt-4 shadow-sm">
+        <div class="card-header bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <span>Lista de Clientes</span>
+                <button class="btn btn-sm btn-primary" onclick="alert('Funcionalidade de adicionar cliente manual (TODO)')"><i class="bi bi-person-plus"></i> Novo Cliente</button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
                         <tr>
-                            <th>ID Cliente</th>
+                            <th>#ID</th>
                             <th>Nome</th>
-                            <th>Email</th>
-                            <th>Data de Registo</th>
+                            <th>Contacto</th>
+                            <th>Empresa</th>
+                            <th>Registado em</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -60,18 +50,29 @@ try {
                         <?php foreach ($clientes as $cliente): ?>
                             <tr>
                                 <td><?php echo $cliente['cliente_id']; ?></td>
-                                <td><?php echo htmlspecialchars($cliente['nome']); ?></td>
-                                <td><?php echo htmlspecialchars($cliente['email']); ?></td>
-                                <td><?php echo date("d/m/Y", strtotime($cliente['data_registo'])); ?></td>
                                 <td>
-                                    <a href="detalhe_cliente.php?id=<?php echo $cliente['cliente_id']; ?>" class="btn-acao">Ver Detalhes</a>
+                                    <div class="fw-bold"><?php echo htmlspecialchars($cliente['nome']); ?></div>
+                                </td>
+                                <td>
+                                    <div><i class="bi bi-envelope"></i> <?php echo htmlspecialchars($cliente['email']); ?></div>
+                                    <?php if(!empty($cliente['telefone'])): ?>
+                                        <div class="small text-muted"><i class="bi bi-telephone"></i> <?php echo htmlspecialchars($cliente['telefone']); ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php echo htmlspecialchars($cliente['empresa'] ?? '-'); ?></td>
+                                <td><?php echo date("d/m/Y", strtotime($cliente['data_criacao'])); ?></td>
+                                <td>
+                                    <a href="detalhe_cliente.php?id=<?php echo $cliente['cliente_id']; ?>" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
-            </section>
-        </main>
+            </div>
+        </div>
     </div>
-</body>
-</html>
+</div>
+
+<?php include '../includes/footer.php'; ?>

@@ -3,41 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login de Administrador - CRM Admin</title>
-    <link rel="stylesheet" href="../public/css/style.css">
-    <link rel="stylesheet" href="../public/css/admin_style.css">
+    <title>Login - CRM Admin</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0d6efd 0%, #0099ff 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            background: white;
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .login-header h3 {
+            color: #333;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <div class="form-container">
-        <h2>Área Administrativa</h2>
+    <div class="login-card">
+        <div class="login-header">
+            <h3>CRM Admin</h3>
+            <p class="text-muted">Faça login para continuar</p>
+        </div>
 
-        <?php 
+        <?php
         session_start();
-        // Exibir mensagens de feedback
-        if (isset($_SESSION['admin_success'])) {
-            echo '<p class="success-message">' . $_SESSION['admin_success'] . '</p>';
-            unset($_SESSION['admin_success']); 
-        }
         if (isset($_SESSION['admin_error'])) {
-            echo '<p class="error-message">' . $_SESSION['admin_error'] . '</p>';
+            echo '<div class="alert alert-danger" role="alert">' . $_SESSION['admin_error'] . '</div>';
             unset($_SESSION['admin_error']);
         }
         ?>
 
         <form action="processa_login.php" method="POST">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required placeholder="admin@crm.local">
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
             </div>
-            <div class="form-group">
-                <button type="submit">Entrar</button>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Entrar</button>
             </div>
-            <p>Não tem conta de administrador? <a href="registo.php">Crie uma aqui</a>.</p>
         </form>
+        <div class="mt-3 text-center">
+            <a href="../index.php" class="text-decoration-none">Voltar ao Início</a>
+        </div>
     </div>
 </body>
 </html>
