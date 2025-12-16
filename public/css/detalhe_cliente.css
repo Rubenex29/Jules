@@ -1,0 +1,70 @@
+/* public/css/detalhe_cliente.css */
+
+.encomenda-info {
+    display: flex;
+    justify-content: space-between;
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.info-item {
+    flex: 1;
+    padding: 0 15px;
+}
+
+.info-item strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.encomenda-itens h2, .historico-estados h2 {
+    font-size: 20px;
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+/* Histórico de Estados */
+.historico-estados ul {
+    list-style: none;
+    padding-left: 20px;
+    border-left: 3px solid #007bff;
+}
+
+.historico-estados li {
+    position: relative;
+    padding: 10px 0 10px 20px;
+}
+
+.historico-estados li::before {
+    content: '';
+    position: absolute;
+    left: -11px;
+    top: 15px;
+    width: 15px;
+    height: 15px;
+    background-color: #007bff;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.historico-estados .data {
+    display: block;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.historico-estados .estado {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.historico-estados .descricao {
+    margin-top: 5px;
+    font-style: italic;
+    color: #555;
+}

@@ -1,0 +1,53 @@
+/* public/css/notificacoes.css */
+
+.notificacoes-lista ul {
+    list-style: none;
+    padding: 0;
+}
+
+.notificacao-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    background-color: #fff;
+}
+
+/* Estilo para notificações que acabaram de ser vistas */
+.notificacao-item.estado-vista {
+    border-left: 5px solid #007bff; /* Azul para "Vista" */
+}
+
+/* Estilo para notificações já lidas */
+.notificacao-item.estado-lida {
+    border-left: 5px solid #6c757d; /* Cinzento para "Lida" */
+    opacity: 0.7;
+}
+
+.notificacao-conteudo p {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+}
+
+.notificacao-data {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.btn-marcar-lida {
+    display: inline-block;
+    padding: 8px 12px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.notificacao-estado span {
+    color: #6c757d;
+    font-weight: bold;
+}
